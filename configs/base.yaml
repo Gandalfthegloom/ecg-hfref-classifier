@@ -1,0 +1,44 @@
+# =========================
+# Experiment metadata
+# =========================
+experiment:
+  name: baseline_r3d18
+  seed: 42
+
+# =========================
+# Data / Clip sampling
+# =========================
+data:
+  root: data/
+  clip_length: 16        # number of frames per clip
+  stride: 2              # temporal stride between frames
+  num_clips: 1           # for multi-clip eval later
+
+# =========================
+# Model
+# =========================
+model:
+  name: r3d_18           # torchvision model name
+  pretrained: true
+  num_classes: 1
+
+  freeze:
+    policy: backbone         # options: none | backbone | partial
+    # unfreeze_at_epoch: 5     # used if policy=partial
+
+# =========================
+# Optimization
+# =========================
+optimizer:
+  name: adamw
+  lr: 1e-4
+  weight_decay: 1e-4
+
+# =========================
+# Training
+# =========================
+training:
+  batch_size: 8
+  epochs: 50
+  num_workers: 8
+  mixed_precision: true

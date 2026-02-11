@@ -1,0 +1,112 @@
+# =========================
+# Project data & outputs
+# =========================
+
+# Ignore all data contents but keep instructions and validation script
+data/*
+!data/README_DATA.md
+!data/validate_filelist.py
+
+# Training artifacts
+outputs/
+checkpoints/
+logs/
+runs/
+
+# Common ML artifacts
+*.ckpt
+*.pt
+*.pth
+*.pkl
+*.joblib
+*.onnx
+*.h5
+*.npz
+*.npy
+
+# =========================
+# Python
+# =========================
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+
+# Packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+pip-wheel-metadata/
+
+# =========================
+# Caches
+# =========================
+
+.cache/
+.pytest_cache/
+.mypy_cache/
+.pyre/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Torch / HF caches (local)
+torch_cache/
+huggingface/
+.huggingface/
+transformers_cache/
+
+# =========================
+# Experiment tracking
+# =========================
+
+wandb/
+mlruns/
+tensorboard/
+tb_logs/
+
+# =========================
+# Logs
+# =========================
+
+*.log
+logs/
+
+# =========================
+# Environment files
+# =========================
+
+.env
+.env.*
+*.local
+
+# =========================
+# OS
+# =========================
+
+.DS_Store
+Thumbs.db
+
+# =========================
+# IDE
+# =========================
+
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# =========================
+# Misc
+# =========================
+
+tmp/
+temp/
+*.tmp
