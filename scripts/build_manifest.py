@@ -3,6 +3,8 @@
 build_manifest.py
 
 Creates a manifest.json file in data/ containing metadata for reproducibility.
+Also produces file_index.parquet, which is a combination of the two given CSVs.
+
 """
 from __future__ import annotations
 
