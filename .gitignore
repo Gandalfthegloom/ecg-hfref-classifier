@@ -1,112 +1,145 @@
-# =========================
-# Project data & outputs
-# =========================
+################################################################################
+# echo-hfref (Echocardiography video classification) — .gitignore
+# Goal: code only; as per permissions from data owners, NO ARTIFACTS OR
+# ANYTHING PERTAINING TO THE DATASET!!!
+################################################################################
 
-# Ignore all data contents but keep instructions and validation script
+# ------------------------------------------------------------------------------
+# Data (keep instructions only)
+# Repo plan: data/ is empty in git; contains README_DATA.md only.
+# ------------------------------------------------------------------------------
 data/*
 !data/README_DATA.md
-!data/validate_filelist.py
+!data/.gitkeep
+!data/.keep
 
-# Training artifacts
+# Regarding notes and data validation for reproducibility.
+!data/**/*.md
+!data/**/*.txt
+!data/**/*.yml
+!data/**/*.yaml
+!data/**/*.py
+
+# Common local dataset artifacts (explicit, for clarity)
+data/**/*.parquet
+data/**/*.csv
+data/**/*.feather
+data/**/*.h5
+data/**/*.npz
+data/**/*.npy
+
+# Raw / processed media (never commit!!!)
+**/*.mp4
+**/*.avi
+**/*.mov
+**/*.mkv
+**/*.m4v
+**/*.webm
+**/*.dcm
+**/*.dicom
+**/*.mhd
+**/*.mha
+**/*.nii
+**/*.nii.gz
+**/*.png
+**/*.jpg
+**/*.jpeg
+**/*.tif
+**/*.tiff
+
+
+# ------------------------------------------------------------------------------
+# Experiment outputs (plan: outputs/<exp_name>/ with config.yaml, log.jsonl, best.pt, preds_*.csv, figures/)
+# ------------------------------------------------------------------------------
 outputs/
-checkpoints/
-logs/
 runs/
+tensorboard/
+tb/
+wandb/
+mlruns/
+lightning_logs/
 
-# Common ML artifacts
-*.ckpt
-*.pt
-*.pth
-*.pkl
-*.joblib
-*.onnx
-*.h5
-*.npz
-*.npy
+# Model checkpoints / weights (if created outside outputs/)
+**/*.pt
+**/*.pth
+**/*.ckpt
+**/*.onnx
+**/*.safetensors
 
-# =========================
-# Python
-# =========================
+# Predictions / metrics / logs (if created outside outputs/)
+**/preds_*.csv
+**/metrics*.json
+**/*.jsonl
+**/*.log
 
+# ------------------------------------------------------------------------------
+# Video decoding caches / temp dirs
+# ------------------------------------------------------------------------------
+cache/
+tmp/
+temp/
+**/.cache/
+**/*_cache/
+frames/
+clips/
+processed/
+interim/
+
+# ------------------------------------------------------------------------------
+# Python / tooling
+# ------------------------------------------------------------------------------
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
 
 # Virtual environments
 .venv/
 venv/
 env/
 ENV/
+.python-version
 
 # Packaging
 build/
 dist/
 *.egg-info/
 .eggs/
-pip-wheel-metadata/
 
-# =========================
-# Caches
-# =========================
-
-.cache/
+# Test / lint / typecheck caches
 .pytest_cache/
+.coverage
+coverage.xml
+htmlcov/
 .mypy_cache/
-.pyre/
 .ruff_cache/
+.tox/
+.nox/
+.hypothesis/
+
+# Notebooks
 .ipynb_checkpoints/
 
-# Torch / HF caches (local)
-torch_cache/
-huggingface/
-.huggingface/
-transformers_cache/
-
-# =========================
-# Experiment tracking
-# =========================
-
-wandb/
-mlruns/
-tensorboard/
-tb_logs/
-
-# =========================
-# Logs
-# =========================
-
-*.log
-logs/
-
-# =========================
-# Environment files
-# =========================
-
-.env
-.env.*
-*.local
-
-# =========================
-# OS
-# =========================
-
+# ------------------------------------------------------------------------------
+# OS / IDE
+# ------------------------------------------------------------------------------
 .DS_Store
 Thumbs.db
-
-# =========================
-# IDE
-# =========================
+ehthumbs.db
+desktop.ini
 
 .vscode/
 .idea/
 *.swp
 *.swo
 
-# =========================
-# Misc
-# =========================
-
-tmp/
-temp/
-*.tmp
+# ------------------------------------------------------------------------------
+# Secrets
+# ------------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+secrets.*
+**/secrets/**
+**/*key*.json
+**/*.pem
+**/*.p12

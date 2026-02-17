@@ -10,5 +10,6 @@ dependencies:
   - torchvision
   - torchaudio
   - opencv
+  - pyarrow
   - pip:
       - tensorboard
