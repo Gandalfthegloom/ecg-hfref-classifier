@@ -1,12 +1,27 @@
 """
-dataset.py
+Dataset utilities for EchoNet-Dynamic video classification.
 
-This script is part of the pipeline with three functions:
+Provides:
+- load_clip(): decode a fixed-length, strided clip from a video file (random or centered window).
+- frames_to_tc_hw(): convert a list of RGB frames (H,W,3) to a (T,C,H,W) torch tensor.
+- EchoDataset: PyTorch Dataset that filters a dataframe by split, loads clips, applies the
+  R(2+1)D-18 Kinetics-400 preprocessing transform, and returns (x, y).
+
+Expected dataframe columns:
+  - FileName: video filename ('.avi' appended if missing)
+  - Split: 'train'/'val'/'test'
+  - label_hfref: binary label (0/1)
+
+Returns:
+  x: float tensor (C, T, H, W) suitable for torchvision video models
+  y: float tensor scalar label
 """
+
 # ML Packages
 import torch
 import torchvision
 from torchvision.models.video import r2plus1d_18, R2Plus1D_18_Weights
+from torch.utils.data import Dataset
 
 # Video decoding
 import cv2
@@ -285,7 +300,7 @@ class EchoDataset(Dataset):
         clip_tchw = frames_to_tc_hw(frames)
         x = self.preprocess(clip_tchw)  # -> (C, T, H, W), float32
 
-        y = torch.tensor(label, dtype=torch.float32)
+        y = torch.tensor([label], dtype=torch.float32)
 
         return x, y
         
