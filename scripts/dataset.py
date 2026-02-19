@@ -13,7 +13,7 @@ Expected dataframe columns:
   - label_hfref: binary label (0/1)
 
 Returns:
-  x: float tensor (C, T, H, W) suitable for torchvision video models
+  x: float tensor (C, T, H, W) for input into the torchvision vision models
   y: float tensor scalar label
 """
 
@@ -30,7 +30,8 @@ import cv2
 import pandas as pd
 import numpy as np
 from pathlib import Path
-from typing import Optional, Dict, Any, List, Tuple
+from typing import Optional, Callable, Dict, Any, List, Tuple
+
 # utils
 import sys
 ROOT = Path(__file__).resolve().parents[1] 
@@ -49,6 +50,8 @@ def load_clip(
     - clip_len : Amount of frames to take
     - stride : Space between frames (so we take a frame once in every [stride] frames.)
     - policy : random (random start) vs. center (take center window)
+    
+    The output is a clip tensor in the form of (T, H, W, 3), basically an array of 3-channel, 112 x 112 size frames.
     """
     path = str(path)
     cap = cv2.VideoCapture(path)
@@ -270,39 +273,61 @@ def frames_to_tc_hw(frames_rgb_uint8: list[np.ndarray]) -> torch.Tensor:
 
 
 class EchoDataset(Dataset):
-    def __init__(self, df, videos_root, split: str, clip_len=16, stride=2):
+    """
+    Universal EchoNet Dataset.
+    Accepts an injected 'transform' to support different backbones.
+    """
+    def __init__(
+        self, 
+        df: pd.DataFrame, 
+        videos_root: Path, 
+        split: str, 
+        clip_len: int = 16, 
+        stride: int = 2,
+        transform: Optional[Callable] = None,
+        debug_limit: int = None
+    ):
         self.df = df[df["Split"] == split].reset_index(drop=True)
+        if debug_limit:
+            self.df = self.df.iloc[:debug_limit]
+            
         self.videos_root = Path(videos_root)
         self.clip_len = clip_len
         self.stride = stride
+        self.transform = transform
         
-        # Train uses random clips; val/test use center clips
-        self.policy = "random" if split.lower() == "train" else "center"
+        # Policy: Training usually random, but for Feature Extraction 
+        # we usually want deterministic 'center' crops to keep embeddings stable.
+        self.policy = "center" 
 
-        weights = R2Plus1D_18_Weights.KINETICS400_V1
-        self.preprocess = weights.transforms()
-        
     def __len__(self):
         return len(self.df)
 
     def __getitem__(self, idx):
         row = self.df.iloc[idx]
-
         filename = row["FileName"]
+        # Use filename as unique ID for feature storage
+        video_name = filename 
+        
         label = row["label_hfref"]
 
         video_path = self.videos_root / filename
-        # handle extension if needed
         if video_path.suffix == "":
             video_path = video_path.with_suffix(".avi")
 
+        # 1. Load Raw Frames
         frames = load_clip(video_path, clip_len=self.clip_len, stride=self.stride, policy=self.policy)
-        clip_tchw = frames_to_tc_hw(frames)
-        x = self.preprocess(clip_tchw)  # -> (C, T, H, W), float32
+        
+        # 2. Convert to Tensor (T, C, H, W)
+        x = frames_to_tc_hw(frames)
+        
+        # 3. Apply Model-Specific Transform (Resize, Norm, etc.)
+        if self.transform:
+            x = self.transform(x)
 
-        y = torch.tensor([label], dtype=torch.float32)
-
-        return x, y
+        # Return: video_name (for ID), x (tensor), y (label)
+        # We need video_name to map embeddings back to files later
+        return video_name, x, torch.tensor(label, dtype=torch.float32)
         
 
 # Main is mostly for checking that the processing works.
@@ -334,5 +359,5 @@ def main() -> None:
 
     
     
-# if __name__ == "__main__":
-#     main()
+if __name__ == "__main__":
+    main()
