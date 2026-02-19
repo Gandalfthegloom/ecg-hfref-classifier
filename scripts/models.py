@@ -1,5 +1,15 @@
+"""
+models.py
+
+Contains functions to :
+- extract R(2+1)D and MViT v2 models from pytorch.
+- 
+"""
+
+
 import torch
 import torch.nn as nn
+from torch.utils.data import DataLoader
 from torchvision.models.video import (
     r2plus1d_18, 
     R2Plus1D_18_Weights,
@@ -60,7 +70,7 @@ class LinearProbe(nn.Module):
         super().__init__()
         self.input_dim = input_dim
         
-        # Optional: BatchNorm can help stabilize linear probes on disparate features
+        # BatchNorm can help stabilize linear probes on disparate features
         self.bn = nn.BatchNorm1d(input_dim)
         
         self.drop = nn.Dropout(p=dropout) if dropout > 0 else nn.Identity()
@@ -98,6 +108,11 @@ def main():
     import numpy as np
     import pandas as pd
     from pathlib import Path
+    import time
+    
+    print(torch.__version__)
+    print(torch.version.cuda)   
+    print("SCRIPT python:", sys.executable)
     
     print("--- Starting models.py Test ---")
     
@@ -174,8 +189,14 @@ def main():
             # Add batch dimension: (C, T, H, W) -> (1, C, T, H, W)
             input_tensor = x.unsqueeze(0)
             
+            # Run inference, noting time
+            print("    - Running inference...")
+            t0 = time.perf_counter()
             with torch.no_grad():
                 emb = model_cnn(input_tensor)
+            t1 = time.perf_counter()
+            elapsed_ms = (t1 - t0) * 1000
+            print(f"    - Inference time: {elapsed_ms:.2f} ms")
                 
             print(f"    - Output Embedding Shape: {emb.shape}")
             
@@ -215,8 +236,14 @@ def main():
             # Forward Pass
             input_tensor = x.unsqueeze(0)
             
+            # Run inference, noting time
+            print("    - Running inference...")
+            t0 = time.perf_counter()
             with torch.no_grad():
                 emb = model_mvit(input_tensor)
+            t1 = time.perf_counter()
+            elapsed_ms = (t1 - t0) * 1000
+            print(f"    - Inference time: {elapsed_ms:.2f} ms")
                 
             print(f"    - Output Embedding Shape: {emb.shape}")
             
@@ -229,6 +256,99 @@ def main():
             print(f"    [FAILURE] MVIT Pipeline crashed: {e}")
             import traceback
             traceback.print_exc()
+
+
+        # --- Batch Size Benchmarking ---
+        print("\n" + "="*40)
+        print("      BATCH SIZE PERFORMANCE TEST      ")
+        print("      (Finding optimal batch size for your PC)")
+        print("="*40)
+        
+        # Detect Hardware
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print(f"[System] Running on device: {device}")
+        if device.type == 'cuda':
+            print(f"[System] GPU: {torch.cuda.get_device_name(0)}")
+        else:
+            print("[System] WARNING: Running on CPU. This will be slow.")
+
+        # Create a larger dataframe for benchmarking by repeating the dummy row
+        # We need enough rows to fill our largest tested batch
+        max_batch = 32
+        bench_rows = [df.iloc[0]] * (max_batch * 2) 
+        df_bench = pd.DataFrame(bench_rows).reset_index(drop=True)
+        
+        batch_sizes_to_test = [1, 2, 4, 8, 16, 32]
+        models_to_test = ["r2plus1d", "mvit"]
+        
+        for model_name in models_to_test:
+            print(f"\n--- Benchmarking Model: {model_name.upper()} ---")
+            
+            try:
+                # 1. Prepare Model & Move to Device
+                if model_name == "r2plus1d":
+                    model = build_r2plus1d_extractor(pretrained=False)
+                else:
+                    model = build_mvit_extractor(pretrained=False)
+                
+                model = model.to(device)
+                
+                # 2. Prepare Dataset
+                transform = get_model_transform(model_name)
+                ds = EchoDataset(
+                    df=df_bench,
+                    videos_root=temp_path,
+                    split="train",
+                    clip_len=16,
+                    transform=transform
+                )
+                
+                # 3. Loop through Batch Sizes
+                # Using an RTX 3050, 16 for R(2+1)D and 8 for the MViT v2 seems to be the sweet spot.
+                for bs in batch_sizes_to_test:
+                    print(f"  Testing Batch Size: {bs}...", end="\r")
+                    try:
+                        loader = DataLoader(ds, batch_size=bs, shuffle=False, num_workers=0)
+                        
+                        # Get a single batch and move to device
+                        _, x_batch, _ = next(iter(loader))
+                        x_batch = x_batch.to(device)
+                        
+                        # Warmup pass
+                        with torch.no_grad():
+                            _ = model(x_batch)
+                        
+                        # Timing Loop (Average of 5 runs)
+                        iterations = 5
+                        t0 = time.perf_counter()
+                        with torch.no_grad():
+                            for _ in range(iterations):
+                                _ = model(x_batch)
+                        total_time = time.perf_counter() - t0
+                        
+                        # Calculate Metrics
+                        avg_time_per_batch = total_time / iterations
+                        videos_per_second = bs / avg_time_per_batch
+                        
+                        print(f"  [Batch Size {bs:2d}] Success! Speed: {videos_per_second:6.2f} videos/sec | Batch Time: {avg_time_per_batch*1000:6.1f} ms")
+                        
+                    except RuntimeError as e:
+                        if "out of memory" in str(e).lower():
+                            print(f"  [Batch Size {bs:2d}] OOM (Out of Memory) - skipped.      ")
+                            if torch.cuda.is_available():
+                                torch.cuda.empty_cache()
+                        else:
+                            print(f"  [Batch Size {bs:2d}] Failed: {str(e)[:50]}...           ")
+                    except Exception as e:
+                         print(f"  [Batch Size {bs:2d}] Failed: {str(e)[:50]}...           ")
+
+                # Cleanup to free memory for next model
+                del model
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+
+            except Exception as e:
+                print(f"Could not setup model {model_name}: {e}")
 
     print("\n--- Test Complete ---")
 

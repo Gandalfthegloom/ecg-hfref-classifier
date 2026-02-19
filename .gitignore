@@ -51,7 +51,7 @@ data/**/*.npy
 # ------------------------------------------------------------------------------
 # Experiment outputs (plan: outputs/<exp_name>/ with config.yaml, log.jsonl, best.pt, preds_*.csv, figures/)
 # ------------------------------------------------------------------------------
-outputs/
+outputs/*
 runs/
 tensorboard/
 tb/

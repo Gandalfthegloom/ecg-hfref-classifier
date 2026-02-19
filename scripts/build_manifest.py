@@ -2,9 +2,16 @@
 """
 build_manifest.py
 
-Creates a manifest.json file in data/ containing metadata for reproducibility.
-Also produces file_index.parquet, which is a combination of the two given CSVs.
-
+Goal: Establish the "Source of Truth" for the dataset.
+------------------------------------------------------
+This script is the bedrock of reproducibility for this project. 
+It performs three critical jobs:
+1.  **Fingerprinting**: It scans the raw data folder and hashes the CSVs. 
+    If the hashes don't match the official EchoNet-Dynamic versions, it warns us.
+2.  **Auto-Discovery**: It searches for the CSVs and AVI files based on their *contents* (columns)
+    rather than just their filenames, so it works even if I move folders around.
+3.  **Indexing**: It merges the two separate CSVs (FileList and VolumeTracings) into a single, 
+    fast-loading Parquet file (`file_index.parquet`) so we don't have to parse text files during training.
 """
 from __future__ import annotations
 
@@ -19,7 +26,11 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Set, Tuple
 
 
-# --- Dataset signature (schema-based) ---------------------
+# ==============================================================================
+# 1. THE RULES OF ENGAGEMENT (Schemas & Constants)
+# ==============================================================================
+# Here we define exactly what the "Official" data looks like. 
+# If a CSV doesn't have these columns, it's not the one we want.
 
 FILELIST_REQUIRED_COLS = {
     "FileName", "EF", "ESV", "EDV", "FrameHeight", "FrameWidth",
@@ -27,12 +38,15 @@ FILELIST_REQUIRED_COLS = {
 }
 VOLUMETRACINGS_REQUIRED_COLS = {"FileName", "X1", "Y1", "X2", "Y2", "Frame"}
 
-# expected hashes of "official" CSV contents normalized for line endings.
+# We hardcode the SHA256 hashes of the original Stanford CSVs.
+# This acts like a unit test for the data itself. If these don't match, 
+# it means the data was modified or corrupted during download.
 EXPECTED_NORMALIZED_SHA256 = {
     "filelist": "31942534B7BB3DEBB9F0F3DE42AF2FB4342F7EA918B32A4095A0B66E91FBACE1",
     "volumetracings": "A51A49A8294B031CAC7DFB2DC01E02E6EFEF93A8A1B9D58D607BE12AB5A716E7",
 }
 
+# Type enforcement for the parquet file later
 FILELIST_DTYPES = {
     "FileName": "string",
     "EF": "float32",
@@ -54,12 +68,16 @@ VOLUMETRACINGS_DTYPES = {
 }
 
 
-# --- Utilities ----------------------------------------------------------------
+# ==============================================================================
+# 2. THE TOOLBOX (Utilities)
+# ==============================================================================
+# Boring but necessary helper functions for hashing files and handling paths.
 
 def utc_now_iso() -> str:
     return datetime.now(timezone.utc).isoformat(timespec="seconds")
 
 def try_relpath_posix(path: Path, base: Path) -> str:
+    """Attempts to make a path relative to the repo root to keep the manifest portable."""
     path = path.resolve()
     base = base.resolve()
     try:
@@ -69,6 +87,7 @@ def try_relpath_posix(path: Path, base: Path) -> str:
         return str(path)
 
 def sha256_file(path: Path, chunk_bytes: int = 8 * 1024 * 1024) -> str:
+    """Standard file hashing."""
     h = hashlib.sha256()
     with path.open("rb") as f:
         while True:
@@ -80,8 +99,8 @@ def sha256_file(path: Path, chunk_bytes: int = 8 * 1024 * 1024) -> str:
 
 def sha256_normalized_newlines(path: Path) -> str:
     """
-    Normalizes CRLF/CR to LF before hashing, and strips trailing newlines.
-    Makes hashes stable across OS line endings.
+    Tricky Part: Windows and Linux handle newlines (\r\n vs \n) differently.
+    This function normalizes them so the hash is consistent regardless of OS.
     """
     b = path.read_bytes()
     b = b.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
@@ -89,7 +108,7 @@ def sha256_normalized_newlines(path: Path) -> str:
     return hashlib.sha256(b).hexdigest()
 
 def read_csv_header(path: Path) -> List[str]:
-    # utf-8-sig handles BOM if present
+    # utf-8-sig handles BOM if present (Excel likes to add BOMs)
     with path.open("r", encoding="utf-8-sig", newline="") as f:
         reader = csv.reader(f)
         header = next(reader, [])
@@ -100,9 +119,7 @@ def count_csv_rows(path: Path) -> int:
         return max(0, sum(1 for _ in f) - 1)
 
 def find_files(root: Path, max_depth: int) -> Iterable[Path]:
-    """
-    Depth-limited recursive walk.
-    """
+    """Depth-limited recursive walk to prevent getting lost in deep folders."""
     root = root.resolve()
     for dirpath, dirnames, filenames in os.walk(root):
         d = Path(dirpath)
@@ -124,15 +141,19 @@ def normalize_video_id(s: str) -> str:
 
 def stem_from_filename_field(s: str) -> str:
     """
-    VolumeTracings 'FileName' includes ".avi" and might include paths.
-    We normalize by taking the last path component and then removing the suffix.
+    VolumeTracings 'FileName' often includes ".avi" or paths.
+    We just want the stem (ID) to match against the FileList.
     """
     s = (s or "").strip().replace("\\", "/")
     last = s.split("/")[-1]
     return Path(last).stem.strip().lower()
 
 
-# --- Matching logic -----------------------------------------------------------
+# ==============================================================================
+# 3. THE DETECTIVE WORK (Heuristics & Matching)
+# ==============================================================================
+# Instead of assuming the files are at "data/FileList.csv", we *search* for them.
+# We look for files that satisfy the schema defined in Section 1.
 
 @dataclass
 class CsvMatch:
@@ -171,6 +192,10 @@ def best_csv_by_schema(
     max_depth: int,
     expected_hash: Optional[str] = None,
 ) -> Optional[CsvMatch]:
+    """
+    Scans the folder tree for any CSV that has the required columns.
+    Returns the 'best' candidate (fewest extra columns, largest size).
+    """
     candidates: List[Tuple[int, Path, List[str]]] = []
 
     for p in find_files(data_root, max_depth=max_depth):
@@ -184,8 +209,9 @@ def best_csv_by_schema(
         header_set = set(header)
         missing = sorted(required_cols - header_set)
         if missing:
-            continue
+            continue # Discard candidates that miss required columns
 
+        # Heuristic score: prefer files with fewer "weird" columns and reasonable size
         extras = len(header_set - required_cols)
         size = p.stat().st_size
         score = 10_000 - extras * 100 + min(size // 1024, 10_000)
@@ -216,6 +242,10 @@ def best_csv_by_schema(
     )
 
 def choose_video_subtree(data_root: Path, max_depth: int, min_avi: int) -> Optional[VideoMatch]:
+    """
+    Finds the directory that actually contains the video files.
+    Useful because sometimes they are in data/Videos, sometimes in data/EchoNet/Videos, etc.
+    """
     avies: List[Path] = []
     for p in find_files(data_root, max_depth=max_depth):
         if is_avi(p):
@@ -228,6 +258,7 @@ def choose_video_subtree(data_root: Path, max_depth: int, min_avi: int) -> Optio
     bytes_by_dir: Dict[Path, int] = {}
     data_root = data_root.resolve()
 
+    # Find which folder has the most videos
     for avi in avies:
         size = avi.stat().st_size
         cur = avi.parent.resolve()
@@ -275,7 +306,11 @@ def index_avi_stems(video_root: Path) -> Set[str]:
     return stems
 
 
-# --- File index builder (stream join -> parquet) ------------------------------
+# ==============================================================================
+# 4. THE DATA FUSION (Parquet Builder)
+# ==============================================================================
+# This is the heavy lifting. We merge the per-video metadata (FileList) with 
+# the per-frame tracings (VolumeTracings) and save it as a highly efficient Parquet file.
 
 def build_file_index_parquet(
     filelist_csv: Path,
@@ -285,7 +320,7 @@ def build_file_index_parquet(
 ) -> Dict:
     """
     Produces file_index.parquet by joining VolumeTracings (many rows per video)
-    with FileList (one row per video) on normalized video_id.
+    with FileList (one row per video) on the video_id.
     """
     import pandas as pd
 
@@ -299,7 +334,7 @@ def build_file_index_parquet(
             "Install it with: pip install pyarrow\n"
         ) from e
 
-    # Read FileList fully (small)
+    # Read FileList fully (it's small, ~10k rows)
     fl = pd.read_csv(filelist_csv, dtype=FILELIST_DTYPES, encoding="utf-8-sig")
     if "FileName" not in fl.columns:
         raise SystemExit(f"FileList missing FileName column: {filelist_csv}")
@@ -318,7 +353,7 @@ def build_file_index_parquet(
     total_rows = 0
     unmatched_rows = 0
 
-    # Stream VolumeTracings in chunks
+    # Stream VolumeTracings in chunks because it can be HUGE
     vt_iter = pd.read_csv(
         volumetracings_csv,
         dtype=VOLUMETRACINGS_DTYPES,
@@ -333,14 +368,14 @@ def build_file_index_parquet(
         chunk = chunk.rename(columns={"FileName": "AviFileName"})
         chunk["video_id"] = chunk["AviFileName"].astype("string").map(stem_from_filename_field)
 
+        # The JOIN: Merge frame data with video metadata
         merged = chunk.merge(fl, on="video_id", how="left")
 
-        # Count unmatched rows (no FileList info found)
+        # Count unmatched rows (frames with no corresponding video metadata)
         unmatched = merged["VideoId"].isna().sum()
         unmatched_rows += int(unmatched)
 
         # Output columns: keep a clean, unified view
-        # (video_id is internal; keep it too for debugging)
         cols_order = (
             ["video_id", "VideoId", "AviFileName"]
             + [c for c in ["EF", "ESV", "EDV", "FrameHeight", "FrameWidth", "FPS", "NumberOfFrames", "Split"] if c in merged.columns]
@@ -370,7 +405,9 @@ def build_file_index_parquet(
     return info
 
 
-# --- Main build ----------------------------------------------------------------
+# ==============================================================================
+# 5. THE CONDUCTOR (Main Execution)
+# ==============================================================================
 
 def build_manifest(
     data_root: Path,
@@ -384,6 +421,7 @@ def build_manifest(
     data_root = data_root.resolve()
     repo_root = repo_root.resolve()
 
+    # 1. Hunt for the FileList CSV
     filelist = best_csv_by_schema(
         data_root, FILELIST_REQUIRED_COLS, max_depth=max_depth,
         expected_hash=EXPECTED_NORMALIZED_SHA256.get("filelist"),
@@ -391,6 +429,7 @@ def build_manifest(
     if not filelist:
         raise SystemExit(f"Could not find a CSV matching FileList schema under {data_root}")
 
+    # 2. Hunt for the VolumeTracings CSV
     volumetracings = best_csv_by_schema(
         data_root, VOLUMETRACINGS_REQUIRED_COLS, max_depth=max_depth,
         expected_hash=EXPECTED_NORMALIZED_SHA256.get("volumetracings"),
@@ -398,6 +437,7 @@ def build_manifest(
     if not volumetracings:
         raise SystemExit(f"Could not find a CSV matching VolumeTracings schema under {data_root}")
 
+    # 3. Hunt for the Video Folder
     videos = choose_video_subtree(data_root, max_depth=max_depth, min_avi=min_avi)
     if not videos:
         raise SystemExit(f"Could not find a video subtree with >= {min_avi} .avi files under {data_root}")
@@ -409,7 +449,8 @@ def build_manifest(
         videos.root.resolve(),
     ])).resolve()
 
-    # Validation: ID overlap
+    # 4. Cross-Reference Validation
+    # Do the IDs in the CSVs actually match the AVI files on disk?
     filelist_ids = load_filelist_ids(filelist.path)
     vol_ids = load_volumetracings_ids(volumetracings.path)
     avi_stems = index_avi_stems(videos.root)
@@ -434,11 +475,11 @@ def build_manifest(
     if volumetracings.expected_hash_ok is False:
         validation["warnings"].append("VolumeTracings CSV hash does not match expected (different version?).")
     if fl_ratio < 0.95:
-        validation["warnings"].append("Low FileList↔AVI match ratio; videos may be missing or renamed.")
+        validation["warnings"].append("Low FileList <-> AVI match ratio; videos may be missing or renamed.")
     if vt_ratio < 0.95:
-        validation["warnings"].append("Low VolumeTracings↔AVI match ratio; videos may be missing or renamed.")
+        validation["warnings"].append("Low VolumeTracings <-> AVI match ratio; videos may be missing or renamed.")
 
-    # Build parquet index (streaming join)
+    # 5. Build the Parquet Index
     file_index_info = build_file_index_parquet(
         filelist_csv=filelist.path,
         volumetracings_csv=volumetracings.path,
@@ -450,6 +491,7 @@ def build_manifest(
             f"file_index.parquet has {file_index_info['unmatched_rows']} rows with no FileList match."
         )
 
+    # 6. Assemble the Final Manifest Object
     manifest = DatasetManifest(
         schema_version="1.1",
         created_at_utc=utc_now_iso(),
@@ -484,6 +526,7 @@ def build_manifest(
         validation=validation,
     )
 
+    # Dump to JSON
     out_manifest_path.parent.mkdir(parents=True, exist_ok=True)
     out_manifest_path.write_text(json.dumps(asdict(manifest), indent=2, sort_keys=True) + "\n", encoding="utf-8")
     return manifest
