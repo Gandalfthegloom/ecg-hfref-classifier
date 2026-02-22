@@ -127,7 +127,7 @@ This tests the features learned directly from the Kinetics-400 pretraining.
    python scripts/extract_features.py --model r2plus1d
    python scripts/extract_features.py --model mvit
    ```
-
+(10-15 minutes on an RTX 3050)
 2. Open and run the cells in `probe_evaluation.ipynb` to train the logistic regression classifier and view the linear probe metrics.
 
 #### Path B: Phase 2 (End-to-End Fine-Tuning)
@@ -135,4 +135,5 @@ This tests the features learned directly from the Kinetics-400 pretraining.
 This adapts the models directly to the echocardiogram domain under the **6 GB VRAM** constraint using PyTorch AMP and strategic unfreezing.
 
 1. Open and run all cells in `finetune_evaluation.ipynb`. This notebook handles the end-to-end training loop, clip-averaging for final inference, and generates the final comparative metrics and curves.
+Warning: This took me about 2.5 hours to complete on RTX 3050
 
