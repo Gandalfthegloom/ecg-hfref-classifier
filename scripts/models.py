@@ -3,7 +3,7 @@ models.py
 
 Contains functions to :
 - extract R(2+1)D and MViT v2 models from pytorch.
-- 
+- build fine-tunable versions of these models.
 """
 
 
@@ -93,8 +93,68 @@ def get_model_transform(model_name: str):
     else:
         raise ValueError(f"Unknown model: {model_name}")
     
+    
+def build_r2plus1d_finetuner(pretrained: bool = True, num_classes: int = 1, tune_blocks: int = 1) -> nn.Module:
+    """
+    R(2+1)D for Fine-tuning.
+    tune_blocks = 1: Unfreezes layer4 (last spatial/temporal block) + fc head.
+    tune_blocks = 2: Unfreezes layer3 and layer4 + fc head.
+    """
+    weights = R2Plus1D_18_Weights.KINETICS400_V1 if pretrained else None
+    model = r2plus1d_18(weights=weights)
+    
+    # 1. Freeze everything initially
+    for p in model.parameters():
+        p.requires_grad = False
+        
+    # 2. Selectively unfreeze the last N blocks
+    # R(2+1)D structure has layer1, layer2, layer3, layer4
+    if tune_blocks >= 1:
+        for p in model.layer4.parameters():
+            p.requires_grad = True
+    if tune_blocks >= 2:
+        for p in model.layer3.parameters():
+            p.requires_grad = True
 
-def main():
+    # 3. Replace the head (requires_grad is True by default for new layers)
+    # Outputting 1 logit for Binary Cross Entropy (BCEWithLogitsLoss)
+    model.fc = nn.Linear(512, num_classes)
+    
+    return model
+
+def build_mvit_finetuner(pretrained: bool = True, num_classes: int = 1, tune_blocks: int = 2) -> nn.Module:
+    """
+    MViT v2 for Fine-tuning.
+    tune_blocks: Number of transformer blocks from the end to unfreeze.
+    """
+    weights = MViT_V2_S_Weights.KINETICS400_V1 if pretrained else None
+    model = mvit_v2_s(weights=weights)
+    
+    # 1. Freeze everything
+    for p in model.parameters():
+        p.requires_grad = False
+        
+    # 2. Unfreeze the last few transformer blocks
+    # MViT v2 Small has 16 blocks (model.blocks). 
+    blocks_to_tune = model.blocks[-tune_blocks:] if tune_blocks > 0 else []
+    for block in blocks_to_tune:
+        for p in block.parameters():
+            p.requires_grad = True
+            
+    # Unfreeze LayerNorm before head
+    for p in model.norm.parameters():
+        p.requires_grad = True
+
+    # 3. Replace head. Original head is Sequential(Dropout, Linear)
+    model.head = nn.Sequential(
+        nn.Dropout(p=0.5),
+        nn.Linear(768, num_classes)
+    )
+    
+    return model
+
+
+def main(): # Mainly for testing. Actually running inference is done in extract_features.py.
     """
     Integration test:
     1. Generates a dummy video and dataframe.

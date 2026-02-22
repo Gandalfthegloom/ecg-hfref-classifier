@@ -285,6 +285,7 @@ class EchoDataset(Dataset):
         clip_len: int = 16, 
         stride: int = 2,
         transform: Optional[Callable] = None,
+        policy: str = "center",
         debug_limit: int = None
     ):
         self.df = df[df["Split"] == split].reset_index(drop=True)
@@ -295,10 +296,9 @@ class EchoDataset(Dataset):
         self.clip_len = clip_len
         self.stride = stride
         self.transform = transform
-        
+        self.policy = policy        
         # Policy: Training usually random, but for Feature Extraction 
         # we usually want deterministic 'center' crops to keep embeddings stable.
-        self.policy = "center" 
 
     def __len__(self):
         return len(self.df)
