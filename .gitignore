@@ -52,6 +52,9 @@ data/**/*.npy
 # Experiment outputs (plan: outputs/<exp_name>/ with config.yaml, log.jsonl, best.pt, preds_*.csv, figures/)
 # ------------------------------------------------------------------------------
 outputs/*
+!outputs/finetuned_roc_pr_acc_curves.png
+!outputs/roc_pr_acc_curve_comparison.png
+
 runs/
 tensorboard/
 tb/
