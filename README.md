@@ -4,6 +4,8 @@ This project compares the performance of a 3D Convolutional Neural Network (**R(
 
 It is designed to evaluate whether Vision Transformers can outperform 3D CNNs on noisy medical videos, and practically demonstrate how both architectures can be effectively trained end-to-end under a strict **6 GB VRAM** hardware constraint using mixed precision and strategic unfreezing.
 
+Full results in Paper `Results.pdf`
+
 ---
 
 ## Key Results
