@@ -8,8 +8,6 @@ It is designed to evaluate whether Vision Transformers can outperform 3D CNNs on
 
 ## Key Results
 
-> **Note:** Replace the `src` paths below with the actual paths to your saved graphs in the repository.
-
 <div align="center">
   <img src="outputs/roc_pr_acc_curve_comparison.png" width="85%" alt="Fine-Tuned ROC Curve">
 </div>
