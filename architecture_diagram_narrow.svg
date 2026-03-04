@@ -1,0 +1,287 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 1700" width="900" height="1700" font-family="'Courier New', monospace">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0d0d14"/>
+      <stop offset="100%" style="stop-color:#0a0a10"/>
+    </linearGradient>
+    <linearGradient id="cnnGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#00d4aa;stop-opacity:0.10"/>
+      <stop offset="100%" style="stop-color:#00d4aa;stop-opacity:0.02"/>
+    </linearGradient>
+    <linearGradient id="mvitGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:0.02"/>
+      <stop offset="100%" style="stop-color:#ff6b6b;stop-opacity:0.10"/>
+    </linearGradient>
+    <filter id="softGlow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="1700" fill="url(#bgGrad)"/>
+  <rect width="900" height="1700" fill="url(#cnnGlow)"/>
+  <rect width="900" height="1700" fill="url(#mvitGlow)"/>
+  <line x1="450" y1="0" x2="450" y2="1700" stroke="#1a1a2e" stroke-width="1"/>
+
+  <!-- Corner accents -->
+  <line x1="30" y1="20" x2="30" y2="80"  stroke="#00d4aa" stroke-width="2" opacity="0.5"/>
+  <line x1="30" y1="20" x2="110" y2="20" stroke="#00d4aa" stroke-width="2" opacity="0.5"/>
+  <line x1="870" y1="20" x2="870" y2="80"  stroke="#ff6b6b" stroke-width="2" opacity="0.5"/>
+  <line x1="790" y1="20" x2="870" y2="20"  stroke="#ff6b6b" stroke-width="2" opacity="0.5"/>
+
+  <!-- HEADER -->
+  <rect x="30" y="20" width="840" height="76" rx="6" fill="#111118" stroke="#1e1e2e" stroke-width="1"/>
+  <text x="450" y="52" text-anchor="middle" font-size="22" font-weight="bold" fill="#ffffff" letter-spacing="0.3">Model Architecture Comparison</text>
+  <text x="450" y="78" text-anchor="middle" font-size="13" fill="#7070a0" letter-spacing="1">R(2+1)D-18  ·  MViT v2 Small  ·  EchoNet-Dynamic  ·  6 GB VRAM</text>
+
+  <!-- COLUMN HEADERS -->
+  <rect x="30"  y="116" width="400" height="52" rx="5" fill="#0d1f1b" stroke="#00d4aa" stroke-width="2"/>
+  <circle cx="56" cy="142" r="7" fill="#00d4aa" filter="url(#softGlow)"/>
+  <text x="74"  y="136" font-size="16" font-weight="bold" fill="#00d4aa">R(2+1)D-18</text>
+  <text x="74"  y="156" font-size="12" fill="#3a8a70">3D CNN  ·  ~31.5M params</text>
+
+  <rect x="470" y="116" width="400" height="52" rx="5" fill="#1f0d0d" stroke="#ff6b6b" stroke-width="2"/>
+  <circle cx="496" cy="142" r="7" fill="#ff6b6b" filter="url(#softGlow)"/>
+  <text x="514" y="136" font-size="16" font-weight="bold" fill="#ff6b6b">MViT v2 Small</text>
+  <text x="514" y="156" font-size="12" fill="#8a3a3a">Vision Transformer  ·  ~34.5M params</text>
+
+  <!-- INPUT -->
+  <text x="450" y="190" text-anchor="middle" font-size="11" fill="#3a3a5e" letter-spacing="2">─────────  INPUT  ─────────</text>
+
+  <rect x="30"  y="200" width="400" height="62" rx="4" fill="#0f0f1e" stroke="#2a2a5a" stroke-width="1"/>
+  <rect x="30"  y="200" width="30"  height="62" rx="4" fill="#1a1a44"/>
+  <text x="45"  y="235" text-anchor="middle" font-size="10" fill="#8888cc" transform="rotate(-90,45,235)" letter-spacing="1">IN</text>
+  <text x="72"  y="222" font-size="14" font-weight="bold" fill="#ccccee">Video Clip</text>
+  <text x="72"  y="242" font-size="12" fill="#5a5a8a">T=16 frames  ·  112×112  ·  stride 2</text>
+  <text x="72"  y="257" font-size="11" fill="#3a3a6a">Random start (train)  ·  Centered (val/test)</text>
+
+  <rect x="470" y="200" width="400" height="62" rx="4" fill="#0f0f1e" stroke="#2a2a5a" stroke-width="1"/>
+  <rect x="470" y="200" width="30"  height="62" rx="4" fill="#1a1a44"/>
+  <text x="485" y="235" text-anchor="middle" font-size="10" fill="#8888cc" transform="rotate(-90,485,235)" letter-spacing="1">IN</text>
+  <text x="512" y="222" font-size="14" font-weight="bold" fill="#ccccee">Video Clip</text>
+  <text x="512" y="242" font-size="12" fill="#5a5a8a">T=16 frames  ·  224×224  ·  stride 2</text>
+  <text x="512" y="257" font-size="11" fill="#3a3a6a">Random start (train)  ·  Centered (val/test)</text>
+
+  <text x="230" y="278" text-anchor="middle" font-size="18" fill="#1e4a3a">↓</text>
+  <text x="670" y="278" text-anchor="middle" font-size="18" fill="#4a1e1e">↓</text>
+
+  <!-- BACKBONE labels -->
+  <text x="230" y="298" text-anchor="middle" font-size="11" fill="#1e4a3a" letter-spacing="1.5">BACKBONE · KINETICS-400</text>
+  <text x="670" y="298" text-anchor="middle" font-size="11" fill="#4a1e1e" letter-spacing="1.5">BACKBONE · KINETICS-400</text>
+
+  <!-- CNN Stem -->
+  <rect x="30"  y="308" width="400" height="62" rx="4" fill="#0d1a17" stroke="#1a4a3a" stroke-width="1"/>
+  <rect x="30"  y="308" width="30"  height="62" rx="4" fill="#0f2820"/>
+  <text x="45"  y="343" text-anchor="middle" font-size="9"  fill="#00d4aa" transform="rotate(-90,45,343)" letter-spacing="1">STEM</text>
+  <text x="72"  y="328" font-size="14" font-weight="bold" fill="#b0ede4">Conv(2+1)D Stem</text>
+  <rect x="72"  y="334" width="52"  height="16" rx="2" fill="#1a2a28" stroke="#2a4a42" stroke-width="0.8"/>
+  <text x="98"  y="346" text-anchor="middle" font-size="10" fill="#4a7a6a">frozen</text>
+  <text x="72"  y="363" font-size="11" fill="#2a6a50">3×1×1 temporal + 1×3×3 spatial  ·  BN + ReLU</text>
+
+  <text x="230" y="382" text-anchor="middle" font-size="18" fill="#1e4a3a">↓</text>
+
+  <!-- CNN L1-2 -->
+  <rect x="30"  y="392" width="400" height="62" rx="4" fill="#0d1a17" stroke="#1a4a3a" stroke-width="1"/>
+  <rect x="30"  y="392" width="30"  height="62" rx="4" fill="#0f2820"/>
+  <text x="45"  y="427" text-anchor="middle" font-size="9"  fill="#00d4aa" transform="rotate(-90,45,427)" letter-spacing="1">L1–2</text>
+  <text x="72"  y="412" font-size="14" font-weight="bold" fill="#b0ede4">Residual Blocks 1–2</text>
+  <rect x="72"  y="418" width="52"  height="16" rx="2" fill="#1a2a28" stroke="#2a4a42" stroke-width="0.8"/>
+  <text x="98"  y="430" text-anchor="middle" font-size="10" fill="#4a7a6a">frozen</text>
+  <text x="72"  y="447" font-size="11" fill="#2a6a50">R(2+1)D residual units  ·  stride 2  ·  64→128 ch</text>
+
+  <text x="230" y="466" text-anchor="middle" font-size="18" fill="#1e4a3a">↓</text>
+
+  <!-- CNN L3 -->
+  <rect x="30"  y="476" width="400" height="62" rx="4" fill="#0d1a17" stroke="#1a4a3a" stroke-width="1"/>
+  <rect x="30"  y="476" width="30"  height="62" rx="4" fill="#0f2820"/>
+  <text x="45"  y="511" text-anchor="middle" font-size="9"  fill="#00d4aa" transform="rotate(-90,45,511)" letter-spacing="1">L3</text>
+  <text x="72"  y="496" font-size="14" font-weight="bold" fill="#b0ede4">Residual Block 3</text>
+  <rect x="72"  y="502" width="52"  height="16" rx="2" fill="#1a2a28" stroke="#2a4a42" stroke-width="0.8"/>
+  <text x="98"  y="514" text-anchor="middle" font-size="10" fill="#4a7a6a">frozen</text>
+  <text x="72"  y="531" font-size="11" fill="#2a6a50">R(2+1)D residual unit  ·  stride 2  ·  128→256 ch</text>
+
+  <text x="230" y="550" text-anchor="middle" font-size="18" fill="#1e4a3a">↓</text>
+
+  <!-- CNN L4 fine-tuned -->
+  <rect x="30"  y="560" width="400" height="62" rx="4" fill="#0a2018" stroke="#00d4aa" stroke-width="2"/>
+  <rect x="30"  y="560" width="30"  height="62" rx="4" fill="#0a3020"/>
+  <text x="45"  y="595" text-anchor="middle" font-size="9"  fill="#00d4aa" transform="rotate(-90,45,595)" letter-spacing="1">L4</text>
+  <text x="72"  y="580" font-size="14" font-weight="bold" fill="#b0ede4">Residual Block 4</text>
+  <rect x="72"  y="586" width="88"  height="16" rx="2" fill="#0a3020" stroke="#00d4aa" stroke-width="1"/>
+  <text x="116" y="598" text-anchor="middle" font-size="10" fill="#00d4aa">fine-tuned ✦</text>
+  <text x="72"  y="615" font-size="11" fill="#2a9a6a">R(2+1)D residual unit  ·  stride 2  ·  256→512 ch</text>
+
+  <text x="230" y="634" text-anchor="middle" font-size="18" fill="#1e4a3a">↓</text>
+  <text x="230" y="652" text-anchor="middle" font-size="11" fill="#3a4a30" letter-spacing="1.5">HEAD</text>
+
+  <!-- CNN Pool -->
+  <rect x="30"  y="660" width="400" height="62" rx="4" fill="#14120a" stroke="#3a3010" stroke-width="1"/>
+  <rect x="30"  y="660" width="30"  height="62" rx="4" fill="#28200a"/>
+  <text x="45"  y="695" text-anchor="middle" font-size="9"  fill="#f0c040" transform="rotate(-90,45,695)" letter-spacing="1">POOL</text>
+  <text x="72"  y="680" font-size="14" font-weight="bold" fill="#ede8b0">Adaptive AvgPool3D</text>
+  <text x="72"  y="700" font-size="11" fill="#6a5a20">Collapses T×H×W → 1×1×1  ·  512-dim embedding</text>
+  <text x="72"  y="715" font-size="11" fill="#4a4010">(Phase 1 linear probe output)</text>
+
+  <text x="230" y="734" text-anchor="middle" font-size="18" fill="#1e4a3a">↓</text>
+
+  <!-- CNN Classifier -->
+  <rect x="30"  y="742" width="400" height="62" rx="4" fill="#14120a" stroke="#f0c040" stroke-width="2"/>
+  <rect x="30"  y="742" width="30"  height="62" rx="4" fill="#28200a"/>
+  <text x="45"  y="777" text-anchor="middle" font-size="9"  fill="#f0c040" transform="rotate(-90,45,777)" letter-spacing="1">CLS</text>
+  <text x="72"  y="762" font-size="14" font-weight="bold" fill="#ede8b0">Linear Classifier</text>
+  <rect x="72"  y="768" width="88"  height="16" rx="2" fill="#0a3020" stroke="#00d4aa" stroke-width="1"/>
+  <text x="116" y="780" text-anchor="middle" font-size="10" fill="#00d4aa">fine-tuned ✦</text>
+  <text x="72"  y="797" font-size="11" fill="#6a5a20">512 → 1  ·  Binary (HFrEF vs Normal EF)</text>
+
+  <!-- MViT Patch Embed -->
+  <rect x="470" y="308" width="400" height="62" rx="4" fill="#1a0d0d" stroke="#4a1a1a" stroke-width="1"/>
+  <rect x="470" y="308" width="30"  height="62" rx="4" fill="#280f0f"/>
+  <text x="485" y="343" text-anchor="middle" font-size="9"  fill="#ff6b6b" transform="rotate(-90,485,343)" letter-spacing="1">PATCH</text>
+  <text x="512" y="328" font-size="14" font-weight="bold" fill="#edb0b0">Patch Embed + Pos. Embed</text>
+  <rect x="512" y="334" width="52"  height="16" rx="2" fill="#281a1a" stroke="#5a2a2a" stroke-width="0.8"/>
+  <text x="538" y="346" text-anchor="middle" font-size="10" fill="#7a5050">frozen</text>
+  <text x="512" y="363" font-size="11" fill="#6a2a2a">3D patch tokens  ·  kernel 3×7×7  ·  96-dim</text>
+
+  <text x="670" y="382" text-anchor="middle" font-size="18" fill="#4a1e1e">↓</text>
+
+  <!-- MViT S1-2 -->
+  <rect x="470" y="392" width="400" height="62" rx="4" fill="#1a0d0d" stroke="#4a1a1a" stroke-width="1"/>
+  <rect x="470" y="392" width="30"  height="62" rx="4" fill="#280f0f"/>
+  <text x="485" y="427" text-anchor="middle" font-size="9"  fill="#ff6b6b" transform="rotate(-90,485,427)" letter-spacing="1">S1–2</text>
+  <text x="512" y="412" font-size="14" font-weight="bold" fill="#edb0b0">Transformer Stages 1–2</text>
+  <rect x="512" y="418" width="52"  height="16" rx="2" fill="#281a1a" stroke="#5a2a2a" stroke-width="0.8"/>
+  <text x="538" y="430" text-anchor="middle" font-size="10" fill="#7a5050">frozen</text>
+  <text x="512" y="447" font-size="11" fill="#6a2a2a">Pooled MHPA + MLP  ·  high-res  ·  96→192d</text>
+
+  <text x="670" y="466" text-anchor="middle" font-size="18" fill="#4a1e1e">↓</text>
+
+  <!-- MViT S3 -->
+  <rect x="470" y="476" width="400" height="62" rx="4" fill="#1a0d0d" stroke="#4a1a1a" stroke-width="1"/>
+  <rect x="470" y="476" width="30"  height="62" rx="4" fill="#280f0f"/>
+  <text x="485" y="511" text-anchor="middle" font-size="9"  fill="#ff6b6b" transform="rotate(-90,485,511)" letter-spacing="1">S3</text>
+  <text x="512" y="496" font-size="14" font-weight="bold" fill="#edb0b0">Transformer Stage 3</text>
+  <rect x="512" y="502" width="52"  height="16" rx="2" fill="#281a1a" stroke="#5a2a2a" stroke-width="0.8"/>
+  <text x="538" y="514" text-anchor="middle" font-size="10" fill="#7a5050">frozen</text>
+  <text x="512" y="531" font-size="11" fill="#6a2a2a">Pooled MHPA + MLP  ·  mid-res  ·  192→384d</text>
+
+  <text x="670" y="550" text-anchor="middle" font-size="18" fill="#4a1e1e">↓</text>
+
+  <!-- MViT S4 fine-tuned -->
+  <rect x="470" y="560" width="400" height="62" rx="4" fill="#200a0a" stroke="#ff6b6b" stroke-width="2"/>
+  <rect x="470" y="560" width="30"  height="62" rx="4" fill="#300a0a"/>
+  <text x="485" y="595" text-anchor="middle" font-size="9"  fill="#ff6b6b" transform="rotate(-90,485,595)" letter-spacing="1">S4</text>
+  <text x="512" y="580" font-size="14" font-weight="bold" fill="#edb0b0">Transformer Stage 4</text>
+  <rect x="512" y="586" width="88"  height="16" rx="2" fill="#300a0a" stroke="#ff6b6b" stroke-width="1"/>
+  <text x="556" y="598" text-anchor="middle" font-size="10" fill="#ff6b6b">fine-tuned ✦</text>
+  <text x="512" y="615" font-size="11" fill="#9a3a3a">Global MHPA + MLP  ·  low-res  ·  384→768d</text>
+
+  <text x="670" y="634" text-anchor="middle" font-size="18" fill="#4a1e1e">↓</text>
+
+  <!-- MViT LayerNorm fine-tuned -->
+  <rect x="470" y="642" width="400" height="62" rx="4" fill="#1a100a" stroke="#ff6b6b" stroke-width="2"/>
+  <rect x="470" y="642" width="30"  height="62" rx="4" fill="#281500"/>
+  <text x="485" y="677" text-anchor="middle" font-size="9"  fill="#ff9944" transform="rotate(-90,485,677)" letter-spacing="1">NORM</text>
+  <text x="512" y="662" font-size="14" font-weight="bold" fill="#edd8b0">Layer Norm</text>
+  <rect x="512" y="668" width="88"  height="16" rx="2" fill="#300a0a" stroke="#ff6b6b" stroke-width="1"/>
+  <text x="556" y="680" text-anchor="middle" font-size="10" fill="#ff6b6b">fine-tuned ✦</text>
+  <text x="512" y="697" font-size="11" fill="#6a3a10">768-dim embedding  (Phase 1 linear probe output)</text>
+
+  <text x="670" y="716" text-anchor="middle" font-size="18" fill="#4a1e1e">↓</text>
+  <text x="670" y="734" text-anchor="middle" font-size="11" fill="#4a3a20" letter-spacing="1.5">HEAD</text>
+
+  <!-- MViT Classifier -->
+  <rect x="470" y="742" width="400" height="62" rx="4" fill="#14120a" stroke="#f0c040" stroke-width="2"/>
+  <rect x="470" y="742" width="30"  height="62" rx="4" fill="#28200a"/>
+  <text x="485" y="777" text-anchor="middle" font-size="9"  fill="#f0c040" transform="rotate(-90,485,777)" letter-spacing="1">CLS</text>
+  <text x="512" y="762" font-size="14" font-weight="bold" fill="#ede8b0">Dropout + Linear</text>
+  <rect x="512" y="768" width="88"  height="16" rx="2" fill="#300a0a" stroke="#ff6b6b" stroke-width="1"/>
+  <text x="556" y="780" text-anchor="middle" font-size="10" fill="#ff6b6b">fine-tuned ✦</text>
+  <text x="512" y="797" font-size="11" fill="#6a5a20">p=0.5 dropout  ·  768 → 1  ·  Binary</text>
+
+  <!-- RESULTS -->
+  <text x="450" y="832" text-anchor="middle" font-size="11" fill="#3a3a5e" letter-spacing="2">─────────────────  PHASE 2 RESULTS  ─────────────────</text>
+
+  <rect x="30"  y="842" width="400" height="110" rx="5" fill="#0a1a16" stroke="#1a4a3a" stroke-width="1"/>
+  <text x="230" y="864" text-anchor="middle" font-size="12" font-weight="bold" fill="#00d4aa" letter-spacing="1">TEST SET PERFORMANCE</text>
+  <rect x="48"  y="872" width="112" height="60" rx="4" fill="#071410" stroke="#0e2a22" stroke-width="1"/>
+  <text x="104" y="900" text-anchor="middle" font-size="24" font-weight="bold" fill="#00d4aa">0.902</text>
+  <text x="104" y="918" text-anchor="middle" font-size="11" fill="#2a6a50" letter-spacing="0.5">ROC-AUC</text>
+  <rect x="174" y="872" width="112" height="60" rx="4" fill="#071410" stroke="#0e2a22" stroke-width="1"/>
+  <text x="230" y="900" text-anchor="middle" font-size="24" font-weight="bold" fill="#00d4aa">0.725</text>
+  <text x="230" y="918" text-anchor="middle" font-size="11" fill="#2a6a50" letter-spacing="0.5">SENS@90%</text>
+  <rect x="300" y="872" width="112" height="60" rx="4" fill="#071410" stroke="#0e2a22" stroke-width="1"/>
+  <text x="356" y="900" text-anchor="middle" font-size="24" font-weight="bold" fill="#00d4aa">2.75m</text>
+  <text x="356" y="918" text-anchor="middle" font-size="11" fill="#2a6a50" letter-spacing="0.5">EPOCH</text>
+
+  <rect x="470" y="842" width="400" height="110" rx="5" fill="#1a0a0a" stroke="#4a1a1a" stroke-width="1"/>
+  <text x="670" y="864" text-anchor="middle" font-size="12" font-weight="bold" fill="#ff6b6b" letter-spacing="1">TEST SET PERFORMANCE</text>
+  <rect x="488" y="872" width="112" height="60" rx="4" fill="#120707" stroke="#2a0e0e" stroke-width="1"/>
+  <text x="544" y="900" text-anchor="middle" font-size="24" font-weight="bold" fill="#ff6b6b">0.936</text>
+  <text x="544" y="918" text-anchor="middle" font-size="11" fill="#6a2a2a" letter-spacing="0.5">ROC-AUC</text>
+  <rect x="614" y="872" width="112" height="60" rx="4" fill="#120707" stroke="#2a0e0e" stroke-width="1"/>
+  <text x="670" y="900" text-anchor="middle" font-size="24" font-weight="bold" fill="#ff6b6b">0.825</text>
+  <text x="670" y="918" text-anchor="middle" font-size="11" fill="#6a2a2a" letter-spacing="0.5">SENS@90%</text>
+  <rect x="740" y="872" width="112" height="60" rx="4" fill="#120707" stroke="#2a0e0e" stroke-width="1"/>
+  <text x="796" y="900" text-anchor="middle" font-size="24" font-weight="bold" fill="#ff6b6b">9.9m</text>
+  <text x="796" y="918" text-anchor="middle" font-size="11" fill="#6a2a2a" letter-spacing="0.5">EPOCH</text>
+
+  <!-- BOOTSTRAP NOTE -->
+  <rect x="30" y="970" width="840" height="66" rx="5" fill="#131008" stroke="#3a3010" stroke-width="1"/>
+  <rect x="30" y="970" width="6"   height="66" rx="3" fill="#f0c040"/>
+  <text x="50"  y="994" font-size="13" font-weight="bold" fill="#f0c040">Bootstrap Significance  (n=1000 paired resamples)</text>
+  <text x="50" y="1014" font-size="12" fill="#a09040">Phase 2:  ΔAUC = 0.0343  ·  95% CI [0.0132, 0.0567]  →  significant</text>
+  <text x="50" y="1030" font-size="12" fill="#5a4a20">Phase 1:  95% CI [-0.0097, 0.0615]  →  statistical tie (includes zero)</text>
+
+  <!-- COMPUTE TABLE -->
+  <text x="450" y="1060" text-anchor="middle" font-size="11" fill="#3a3a5e" letter-spacing="2">─────────────────  COMPUTE PROFILE  ─────────────────</text>
+
+  <rect x="30" y="1068" width="840" height="170" rx="5" fill="#0f0f18" stroke="#1e1e2e" stroke-width="1"/>
+  <rect x="30" y="1068" width="840" height="34" rx="5" fill="#141420"/>
+  <text x="220" y="1090" text-anchor="middle" font-size="12" fill="#5050a0" letter-spacing="1">METRIC</text>
+  <text x="540" y="1090" text-anchor="middle" font-size="12" fill="#00d4aa" letter-spacing="1">R(2+1)D-18</text>
+  <text x="760" y="1090" text-anchor="middle" font-size="12" fill="#ff6b6b" letter-spacing="1">MViT v2 Small</text>
+  <line x1="50" y1="1102" x2="850" y2="1102" stroke="#1e1e2e" stroke-width="1"/>
+
+  <text x="220" y="1124" text-anchor="middle" font-size="13" fill="#6060a0">Trainable Params</text>
+  <text x="540" y="1124" text-anchor="middle" font-size="14" font-weight="bold" fill="#00d4aa">23.5M</text>
+  <text x="760" y="1124" text-anchor="middle" font-size="14" font-weight="bold" fill="#ff6b6b">13.6M</text>
+  <line x1="50" y1="1132" x2="850" y2="1132" stroke="#1a1a2a" stroke-width="0.5"/>
+
+  <text x="220" y="1154" text-anchor="middle" font-size="13" fill="#6060a0">Training Throughput</text>
+  <text x="540" y="1154" text-anchor="middle" font-size="14" font-weight="bold" fill="#00d4aa">5.7 it/s</text>
+  <text x="760" y="1154" text-anchor="middle" font-size="14" font-weight="bold" fill="#ff6b6b">3.1 it/s</text>
+  <line x1="50" y1="1162" x2="850" y2="1162" stroke="#1a1a2a" stroke-width="0.5"/>
+
+  <text x="220" y="1184" text-anchor="middle" font-size="13" fill="#6060a0">Epoch Train Time</text>
+  <text x="540" y="1184" text-anchor="middle" font-size="14" font-weight="bold" fill="#00d4aa">~2m 45s</text>
+  <text x="760" y="1184" text-anchor="middle" font-size="14" font-weight="bold" fill="#ff6b6b">~9m 54s</text>
+  <line x1="50" y1="1192" x2="850" y2="1192" stroke="#1a1a2a" stroke-width="0.5"/>
+
+  <text x="220" y="1214" text-anchor="middle" font-size="13" fill="#6060a0">Inference (1277 vids)</text>
+  <text x="540" y="1214" text-anchor="middle" font-size="14" font-weight="bold" fill="#00d4aa">6m 28s</text>
+  <text x="760" y="1214" text-anchor="middle" font-size="14" font-weight="bold" fill="#ff6b6b">14m 55s</text>
+
+  <!-- 3.6x callout -->
+  <rect x="836" y="1150" width="24" height="52" rx="3" fill="#1a1008" stroke="#3a2808" stroke-width="1"/>
+  <text x="848" y="1175" text-anchor="middle" font-size="9" fill="#f0a040" transform="rotate(90,848,1176)">3.6× slower</text>
+
+  <!-- LEGEND -->
+  <rect x="30" y="1256" width="840" height="52" rx="5" fill="#0f0f18" stroke="#1e1e2e" stroke-width="1"/>
+  <rect x="60"  y="1271" width="58" height="16" rx="2" fill="#1a2a28" stroke="#2a4a42" stroke-width="0.8"/>
+  <text x="89"  y="1283" text-anchor="middle" font-size="10" fill="#4a7a6a">frozen</text>
+  <text x="126" y="1283" font-size="12" fill="#5a5a7e">Backbone — not updated</text>
+  <rect x="330" y="1271" width="88"  height="16" rx="2" fill="#0a3020" stroke="#00d4aa" stroke-width="1"/>
+  <text x="374" y="1283" text-anchor="middle" font-size="10" fill="#00d4aa">fine-tuned ✦</text>
+  <text x="426" y="1283" font-size="12" fill="#5a5a7e">Unfrozen — CNN</text>
+  <rect x="590" y="1271" width="88"  height="16" rx="2" fill="#300a0a" stroke="#ff6b6b" stroke-width="1"/>
+  <text x="634" y="1283" text-anchor="middle" font-size="10" fill="#ff6b6b">fine-tuned ✦</text>
+  <text x="686" y="1283" font-size="12" fill="#5a5a7e">Unfrozen — MViT</text>
+
+  <!-- FOOTER -->
+  <rect x="30" y="1326" width="840" height="54" rx="5" fill="#0f0f18" stroke="#1a1a2a" stroke-width="1"/>
+  <text x="450" y="1348" text-anchor="middle" font-size="12" fill="#4a4a6e">EchoNet-Dynamic (Stanford)  ·  10,030 videos  ·  HFrEF: EF ≤ 40%</text>
+  <text x="450" y="1366" text-anchor="middle" font-size="12" fill="#3a3a5e">Split 75/12.5/12.5  ·  AdamW + AMP FP16  ·  5-clip averaging at inference</text>
+  <text x="450" y="1384" text-anchor="middle" font-size="11" fill="#2a2a4e">github.com/Gandalfthegloom/ecg-hfref-classifier</text>
+
+</svg>
