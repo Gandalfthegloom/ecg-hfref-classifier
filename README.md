@@ -6,7 +6,7 @@ It is designed to evaluate whether Vision Transformers can outperform 3D CNNs on
 
 Full results in Paper `Results.pdf`
 
-![Architecture Diagram](architecture_diagram.svg)
+![Architecture Diagram](architecture_diagram_narrow.svg)
 ---
 
 ## Key Results
