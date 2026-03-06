@@ -4,9 +4,21 @@ This project compares the performance of a 3D Convolutional Neural Network (**R(
 
 It is designed to evaluate whether Vision Transformers can outperform 3D CNNs on noisy medical videos, and practically demonstrate how both architectures can be effectively trained end-to-end under a strict **6 GB VRAM** hardware constraint using mixed precision and strategic unfreezing.
 
-Full results in Paper `Results.pdf`
+## Key Findings
+
+- Under **frozen Kinetics-400 features**, the two architectures were effectively tied (**ROC-AUC 0.804 vs. 0.828**), suggesting that generic natural-video pretraining was the main bottleneck before domain adaptation.
+- After **end-to-end fine-tuning on echocardiograms**, **MViT v2 Small** outperformed **R(2+1)D-18** across major metrics (**ROC-AUC 0.9359 vs. 0.9020**, **PR-AUC 0.7596 vs. 0.6806**).
+- At a clinically stricter operating point of **~90% specificity**, the transformer achieved higher sensitivity (**0.8250 vs. 0.7250**), which matters for screening-oriented deployment.
+- This gain came with a real systems tradeoff: the transformer remained feasible under **6 GB VRAM**, but required smaller batches and was approximately **3.6× slower to train** than the CNN.
+
+## Motivation / Clinical Context
+
+Heart failure affects roughly **64 million people worldwide**, and about half of these cases are **heart failure with reduced ejection fraction (HFrEF)**. Echocardiography is the primary noninvasive tool used to assess ejection fraction, but manual interpretation can be time-consuming and variable across operators. Reliable automated screening from echo videos could help flag reduced EF earlier and make cardiac assessment more scalable and consistent. Making these models work under a strict **6 GB VRAM** budget also matters for real-world resource-constrained deployment, where high-end hardware may not be available.
+
+Full results in Paper `Full_Results_Report.pdf`
 
 ![Architecture Diagram](architecture_diagram_narrow.svg)
+The above image was programmed with the help of Claude AI.
 ---
 
 ## Key Results
@@ -35,10 +47,7 @@ After end-to-end fine-tuning on the echocardiogram domain, the Vision Transforme
 
 ---
 
-## What This Reproduces
-
-- **Reproduces:** Findings from the report *"Resource-Constrained Echocardiogram Video Classification: 3D CNNs vs. Vision Transformers Under a 6 GB VRAM Constraint"*
-- **Expected outputs:**
+## Expected Outputs
   - Evaluation metrics (ROC-AUC, PR-AUC, Sensitivity at ~90% Specificity, Max Accuracy)
   - ROC and Precision-Recall evaluation curves
   - Performance profiling (parameter counts, steps per epoch, and training/inference timings)
@@ -139,4 +148,9 @@ This adapts the models directly to the echocardiogram domain under the **6 GB VR
 
 1. Open and run all cells in `finetune_evaluation.ipynb`. This notebook handles the end-to-end training loop, clip-averaging for final inference, and generates the final comparative metrics and curves.
 Warning: This took me about 2.5 hours to complete on RTX 3050
+---
+
+## Limitations and Future Work
+
+This study is limited to a **single public dataset (EchoNet-Dynamic)**, so the results may not fully reflect performance across different institutions, scanners, or acquisition protocols. The task is framed as **binary HFrEF classification**, but a more clinically meaningful approach would be **continuous ejection fraction regression** or multi-task prediction. We also did **not include an external validation set**, which is important for assessing generalization beyond the original benchmark split. Finally, all timing and memory conclusions come from a **single 6 GB hardware configuration**, so future work should test whether the same architectural tradeoffs hold across other consumer and clinical deployment environments.
 
