@@ -4,7 +4,7 @@ This project compares the performance of a 3D Convolutional Neural Network (**R(
 
 It is designed to evaluate whether Vision Transformers can outperform 3D CNNs on noisy medical videos, and practically demonstrate how both architectures can be effectively trained end-to-end under a strict **6 GB VRAM** hardware constraint using mixed precision and strategic unfreezing.
 
-## Key Findings
+## Summary
 
 - Under **frozen Kinetics-400 features**, the two architectures were effectively tied (**ROC-AUC 0.804 vs. 0.828**), suggesting that generic natural-video pretraining was the main bottleneck before domain adaptation.
 - After **end-to-end fine-tuning on echocardiograms**, **MViT v2 Small** outperformed **R(2+1)D-18** across major metrics (**ROC-AUC 0.9359 vs. 0.9020**, **PR-AUC 0.7596 vs. 0.6806**).
@@ -20,6 +20,8 @@ Full results in Paper `Full_Results_Report.pdf`
 ![Architecture Diagram](architecture_diagram_narrow.svg)
 The above image was programmed with the help of Claude AI.
 ---
+
+# Details
 
 ## Key Results
 
@@ -47,7 +49,7 @@ After end-to-end fine-tuning on the echocardiogram domain, the Vision Transforme
 
 ---
 
-## Expected Outputs
+## Expected Outputs for Reproduction
   - Evaluation metrics (ROC-AUC, PR-AUC, Sensitivity at ~90% Specificity, Max Accuracy)
   - ROC and Precision-Recall evaluation curves
   - Performance profiling (parameter counts, steps per epoch, and training/inference timings)
